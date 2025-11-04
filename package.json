@@ -2,10 +2,10 @@
   "name": "chartpoint",
   "version": "1.0.0",
   "description": "Feedo backend server",
-  "main": "server.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "Suraj Hattarakal",
