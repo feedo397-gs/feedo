@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  phone: { type: String, required: true, unique: true },
+  mobile: { type: String, required: true, unique: true },
+  name: { type: String },
   otp: { type: String },
-  otpExpires: { type: Date }
-});
+}, { timestamps: true });
 
-export default mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;
