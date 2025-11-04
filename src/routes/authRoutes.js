@@ -8,13 +8,13 @@ const router = express.Router();
 let client = null;
 let useMockOTP = false;
 
-// Check if Twilio credentials exist
+// Twilio setup
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   try {
     client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
     console.log("✅ Twilio initialized");
   } catch (err) {
-    console.warn("⚠️ Failed to initialize Twilio. Falling back to mock OTP mode.");
+    console.warn("⚠️ Failed to initialize Twilio. Using mock OTP mode.");
     useMockOTP = true;
   }
 } else {
@@ -26,10 +26,10 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
 router.post("/request-otp", async (req, res) => {
   try {
     const { phone } = req.body;
-    if (!phone) return res.status(400).json({ error: "Phone number is required" });
+    if (!phone) return res.status(400).json({ error: "Phone number required" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + process.env.OTP_EXPIRY_MINUTES * 60000);
+    const otpExpires = new Date(Date.now() + (process.env.OTP_EXPIRY_MINUTES || 5) * 60000);
 
     let user = await User.findOne({ phone });
     if (!user) user = await User.create({ phone, otp, otpExpires });
@@ -39,12 +39,11 @@ router.post("/request-otp", async (req, res) => {
       await user.save();
     }
 
-    // Send OTP (via Twilio or mock)
     if (!useMockOTP && client) {
       await client.messages.create({
         from: process.env.TWILIO_WHATSAPP_FROM,
         to: `whatsapp:+91${phone}`,
-        body: `Your Feedo OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES} minutes.`
+        body: `Your Feedo OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES || 5} minutes.`
       });
       console.log(`✅ WhatsApp OTP sent to +91${phone}`);
     } else {
@@ -68,7 +67,6 @@ router.post("/verify-otp", async (req, res) => {
     }
 
     const token = jwt.sign({ phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
     res.json({ success: true, token, message: "Login successful" });
   } catch (err) {
     res.status(500).json({ error: err.message });

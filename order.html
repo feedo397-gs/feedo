@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders - Feedo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ff7300, #ffb347);
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 0 0 20px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    .back-btn {
+      background: #fff;
+      color: #ff7300;
+      border: none;
+      border-radius: 25px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .back-btn:hover {
+      background: #ffb84d;
+      color: white;
+    }
+
+    .orders-container {
+      margin-top: 30px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .order-card {
+      background: #fff;
+      color: #333;
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.3s;
+    }
+
+    .order-card:hover {
+      transform: scale(1.02);
+    }
+
+    .order-details {
+      flex: 1;
+    }
+
+    .order-details h3 {
+      color: #ff7300;
+    }
+
+    .order-actions button {
+      margin-left: 10px;
+      background: #ff7300;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .order-actions button:hover {
+      background: #ff9900;
+    }
+
+    .empty-message {
+      margin-top: 50px;
+      font-size: 1.2rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="header-title">🛍️ My Orders</span>
+    <button class="back-btn" onclick="location.href='index.html'">⬅ Back</button>
+  </header>
+
+  <div class="orders-container" id="ordersContainer"></div>
+
+  <script>
+    const apiBase = "http://localhost:5000/api";
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch(`${apiBase}/order`);
+        const orders = await res.json();
+        const container = document.getElementById("ordersContainer");
+
+        container.innerHTML = "";
+        if (orders.length === 0) {
+          container.innerHTML = "<div class='empty-message'>No orders placed yet 🍕</div>";
+          return;
+        }
+
+        orders.forEach((o) => {
+          const div = document.createElement("div");
+          div.className = "order-card";
+          div.innerHTML = `
+            <div class="order-details">
+              <h3>${o.item}</h3>
+              <p><b>Shop:</b> ${o.shop}</p>
+              <p><b>Price:</b> ₹${o.price}</p>
+              <p><b>Status:</b> ${o.status || "Pending"}</p>
+              <small>${new Date(o.createdAt).toLocaleString()}</small>
+            </div>
+            <div class="order-actions">
+              <button onclick="reorder('${o.shop}','${o.item}',${o.price})">Reorder</button>
+              <button onclick="cancelOrder('${o._id}')">Cancel</button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function cancelOrder(id) {
+      await fetch(`${apiBase}/order/${id}`, { method: "DELETE" });
+      alert("❌ Order cancelled");
+      fetchOrders();
+    }
+
+    async function reorder(shop, item, price) {
+      await fetch(`${apiBase}/order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shop, item, price }),
+      });
+      alert(`✅ Reordered ${item} from ${shop}`);
+      fetchOrders();
+    }
+
+    fetchOrders();
+  </script>
+</body>
+</html>

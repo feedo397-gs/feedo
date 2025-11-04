@@ -1,165 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fly Pizza | ChartPoint</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Feedo - Food Delivery</title>
 <style>
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: #fafafa;
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-header h2 {
-  margin: 0;
-  font-weight: 600;
-}
-header .app-name {
-  font-weight: 700;
-  color: #ff3b30;
-}
-.slider {
-  position: relative;
-  overflow: hidden;
-  height: 200px;
-  border-radius: 15px;
-  margin: 15px;
-}
-.slider img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  display: none;
-  border-radius: 15px;
-}
-.slider img.active {
-  display: block;
-  animation: fade 1s;
-}
-@keyframes fade {
-  from {opacity: 0.4;}
-  to {opacity: 1;}
-}
-.shop-preview {
-  padding: 10px;
-  background: #fff;
-  border-radius: 15px;
-  margin: 15px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-.shop-preview h3 {
-  margin: 5px 0;
-}
-.items {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-}
-.item {
-  width: 30%;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  text-align: center;
-  padding: 10px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.item:hover {
-  transform: scale(1.05);
-}
-.item img {
-  width: 100%;
-  border-radius: 15px;
-  height: 90px;
-  object-fit: cover;
-}
-.item p {
-  margin: 5px 0;
-  font-weight: 500;
-}
-.navbar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: white;
-  display: flex;
-  justify-content: space-around;
-  border-top: 1px solid #ccc;
-  padding: 8px 0;
-}
-.navbar button {
-  background: none;
-  border: none;
-  font-size: 15px;
-  cursor: pointer;
-}
-.navbar button:hover {
-  color: #ff3b30;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+  body {
+    background: linear-gradient(135deg, #ff7300, #ffb347);
+    min-height: 100vh; color: #fff;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  header {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px; background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px); border-radius: 0 0 20px 20px;
+  }
+  .profile-btn {
+    background: #fff; color: #ff7b00; border: none; border-radius: 50%;
+    width: 45px; height: 45px; font-size: 1.3rem;
+    cursor: pointer; transition: 0.3s;
+  }
+  .top-buttons { display: flex; gap: 15px; margin-top: 20px; }
+  .top-buttons button {
+    background: #fff; color: #ff7b00; border: none; border-radius: 25px;
+    padding: 10px 25px; font-weight: bold; cursor: pointer; transition: 0.3s;
+  }
+  .shop-list, .menu-list {
+    margin-top: 25px; width: 90%;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  .shop-card, .menu-card {
+    background: #fff; color: #333; border-radius: 20px; padding: 10px;
+    text-align: center; transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  .menu-card button {
+    margin-top: 8px; background: #ff7b00; color: white; border: none;
+    border-radius: 20px; padding: 6px 15px; cursor: pointer;
+    font-weight: bold; transition: 0.3s;
+  }
+  .popup {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: none;
+    justify-content: center; align-items: center; z-index: 100;
+  }
+  .popup-content {
+    background: #fff; color: #333; padding: 25px; border-radius: 15px;
+    width: 300px; text-align: center;
+  }
+  .popup-content input {
+    width: 80%; padding: 8px; margin-top: 10px;
+    border-radius: 8px; border: 1px solid #ccc; text-align: center;
+  }
+  .popup-content button {
+    margin-top: 15px; background: #ff7b00; color: white;
+    border: none; border-radius: 20px; padding: 8px 15px;
+    font-weight: bold; cursor: pointer;
+  }
+
+  /* Sliding Cart Panel */
+  .cart-panel {
+    position: fixed; bottom: -100%; left: 0;
+    width: 100%; height: 70vh; background: #fff;
+    border-radius: 25px 25px 0 0; color: #333;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+    transition: bottom 0.4s ease-in-out;
+    padding: 20px; overflow-y: auto;
+    z-index: 200;
+  }
+  .cart-panel.active { bottom: 0; }
+  .cart-item {
+    background: rgba(255, 136, 0, 0.1); padding: 10px;
+    border-radius: 15px; margin-bottom: 10px;
+  }
+  .cart-item img { width: 100%; border-radius: 15px; }
+  .cart-item button {
+    margin-top: 5px; background: #ff7b00; color: white; border: none;
+    border-radius: 15px; padding: 5px 10px; cursor: pointer;
+  }
+  .cart-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px;
+  }
+  .close-cart {
+    background: none; border: none; font-size: 1.5rem;
+    color: #ff7b00; cursor: pointer;
+  }
+  .cart-total {
+    text-align: center; font-size: 1.1rem;
+    background: rgba(255, 136, 0, 0.2);
+    padding: 10px; border-radius: 15px;
+  }
+  .place-order {
+    display: block; width: 100%; margin-top: 10px;
+    background: #ff7b00; color: #fff;
+    border: none; border-radius: 25px;
+    padding: 10px 0; font-weight: bold; cursor: pointer;
+  }
+
+  /* Checkout Page */
+  .checkout {
+    display: none; flex-direction: column; align-items: center;
+    width: 90%; background: #fff; color: #333;
+    border-radius: 15px; padding: 20px; margin-top: 20px;
+  }
+  .checkout h2 { color: #ff7b00; margin-bottom: 15px; }
+  .checkout input {
+    width: 90%; padding: 10px; border-radius: 10px;
+    border: 1px solid #ccc; margin: 10px 0;
+  }
+  .proceed-btn {
+    background: #ff7b00; color: #fff; border: none;
+    padding: 10px 20px; border-radius: 25px;
+    font-weight: bold; cursor: pointer; margin-top: 10px;
+  }
 </style>
 </head>
 <body>
+
 <header>
-  <h2>Fly Pizza</h2>
-  <div class="app-name">ChartPoint</div>
+  <h2>🍔 Feedo</h2>
+  <button class="profile-btn" id="profileBtn">👤</button>
 </header>
 
-<div class="slider">
-  <img src="flipizza.jpg" class="active" alt="Fly Pizza">
-  <img src="https://source.unsplash.com/800x400/?burger" alt="Burger">
-  <img src="https://source.unsplash.com/800x400/?fries" alt="Fries">
-  <img src="https://source.unsplash.com/800x400/?pasta" alt="Pasta">
+<div class="top-buttons">
+  <button onclick="loadShops()">🏠 Home</button>
+  <button onclick="toggleCart()">🛒 Cart</button>
 </div>
 
-<div class="shop-preview">
-  <h3>Special Menu</h3>
-  <p>Popular dishes you must try!</p>
-</div>
+<div class="shop-list" id="shopList"></div>
+<div class="menu-list" id="menuList" style="display:none;"></div>
 
-<div class="items">
-  <div class="item" onclick="window.location.href='flypizza.html'">
-    <img src="flipizza.jpg" alt="Pizza">
-    <p>Pizza</p>
-  </div>
-  <div class="item" onclick="window.location.href='flypizza.html'">
-    <img src="https://source.unsplash.com/200x200/?burger" alt="">
-    <p>Burger</p>
-  </div>
-  <div class="item" onclick="window.location.href='flypizza.html'">
-    <img src="https://source.unsplash.com/200x200/?fries" alt="">
-    <p>Finger Chips</p>
+<!-- Quantity Popup -->
+<div class="popup" id="quantityPopup">
+  <div class="popup-content">
+    <h3>Enter Quantity</h3>
+    <input type="number" id="quantityInput" min="1" value="1">
+    <button onclick="confirmAddToCart()">Add to Cart</button>
   </div>
 </div>
 
-<div class="navbar">
-  <button>🛒 Cart</button>
-  <button>📦 Orders</button>
-  <button>👤 Profile</button>
+<!-- Sliding Cart Panel -->
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <h3>🛒 Your Cart</h3>
+    <button class="close-cart" onclick="toggleCart()">✖</button>
+  </div>
+  <div id="cartList"></div>
+</div>
+
+<!-- Checkout Page -->
+<div class="checkout" id="checkoutPage">
+  <h2>Checkout</h2>
+  <div id="checkoutItems"></div>
+  <input type="text" id="userAddress" placeholder="Enter your address">
+  <input type="text" id="userPhone" placeholder="Enter mobile number">
+  <button class="proceed-btn" onclick="proceedOrder()">Proceed</button>
 </div>
 
 <script>
-// Slider auto change
-let index = 0;
-const imgs = document.querySelectorAll(".slider img");
-setInterval(()=>{
-  imgs[index].classList.remove("active");
-  index = (index + 1) % imgs.length;
-  imgs[index].classList.add("active");
-},2500);
+  const shops = [
+    {
+      id: 1, name: "Mister Chef",
+      image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092",
+      category: "Pizza, Burgers",
+      rating: 4.7,
+      items: [
+        { name: "Margherita Pizza", price: 180, image: "https://images.unsplash.com/photo-1601924638867-3ec4f525f019" },
+        { name: "Cheese Burst Pizza", price: 220, image: "https://images.unsplash.com/photo-1601924573313-1fda59e8a10d" }
+      ]
+    },
+    {
+      id: 2, name: "Fly Pizza",
+      image: "https://images.unsplash.com/photo-1594007654729-407eedc4be65",
+      category: "Pizza, Beverages",
+      rating: 4.8,
+      items: [
+        { name: "Farmhouse Pizza", price: 240, image: "https://images.unsplash.com/photo-1600628422010-90f8ec9b5a2f" },
+        { name: "Chicken Delight Pizza", price: 280, image: "https://images.unsplash.com/photo-1605475128023-0aa6b1f7bfc1" },
+        { name: "Cheese  Pizza", price: 280, image: "https://images.unsplash.com/photo-1605475128023-0aa6b1f7bfc1" },
+      
+      ]
+    },
+    {
+      id: 3, name: "Dolphin Biryani House",
+      image: "https://images.unsplash.com/photo-1601050690597-3d3f22e8fbc7",
+      category: "Non-Veg, Veg Bhajis, Rice",
+      rating: 4.8,
+      items: [
+        { name: "Chicken Biryani", price: 180, image: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f" },
+        { name: "Mutton Biryani", price: 250, image: "https://images.unsplash.com/photo-1601050690597-3d3f22e8fbc7" },
+        { name: "Fish Biryani", price: 220, image: "https://images.unsplash.com/photo-1625944230940-92d3657fe7e7" },
+        { name: "Egg Biryani", price: 150, image: "https://images.unsplash.com/photo-1640622658431-5313b1a6c8fa" },
+        { name: "Veg Fried Rice", price: 130, image: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f" },
+        { name: "Paneer Bhaji", price: 160, image: "https://images.unsplash.com/photo-1600628422010-90f8ec9b5a2f" },
+        { name: "Dal Fry", price: 140, image: "https://images.unsplash.com/photo-1640622658431-5313b1a6c8fa" },
+        { name: "Veg Biryani", price: 140, image: "https://images.unsplash.com/photo-1605475128023-0aa6b1f7bfc1" }
+      ]
+    }
+  ];
+
+  let selectedItem = null;
+
+  function loadShops() {
+    document.getElementById("checkoutPage").style.display = "none";
+    const list = document.getElementById("shopList");
+    list.innerHTML = "";
+    document.getElementById("menuList").style.display = "none";
+    list.style.display = "grid";
+    shops.forEach((s) => {
+      const div = document.createElement("div");
+      div.className = "shop-card";
+      div.innerHTML = `
+        <img src="${s.image}" style="width:100%;border-radius:15px;">
+        <h3>${s.name}</h3>
+        <p>${s.category}</p>
+        <small>⭐ ${s.rating}</small>
+      `;
+      div.onclick = () => showMenu(s);
+      list.appendChild(div);
+    });
+  }
+
+  function showMenu(shop) {
+    const menuList = document.getElementById("menuList");
+    menuList.innerHTML = `<button class='menu-card' style='grid-column: span 2;' onclick='loadShops()'>⬅ Back</button>`;
+    shop.items.forEach((item) => {
+      const div = document.createElement("div");
+      div.className = "menu-card";
+      div.innerHTML = `
+        <img src="${item.image}" style="width:100%;border-radius:15px;">
+        <h3>${item.name}</h3>
+        <p>₹${item.price}</p>
+        <button onclick='openQuantityPopup(${JSON.stringify(item)}, "${shop.name}")'>🛒 Add</button>
+      `;
+      menuList.appendChild(div);
+    });
+    menuList.style.display = "grid";
+    document.getElementById("shopList").style.display = "none";
+  }
+
+  function openQuantityPopup(item, shop) {
+    selectedItem = { ...item, shop };
+    document.getElementById("quantityPopup").style.display = "flex";
+  }
+
+  function confirmAddToCart() {
+    const qty = parseInt(document.getElementById("quantityInput").value);
+    if (qty < 1) return alert("Enter valid quantity");
+
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cart.push({ ...selectedItem, qty });
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    alert(`${selectedItem.name} added to cart!`);
+    document.getElementById("quantityPopup").style.display = "none";
+  }
+
+  function toggleCart() {
+    const cartPanel = document.getElementById("cartPanel");
+    cartPanel.classList.toggle("active");
+    if (cartPanel.classList.contains("active")) loadCart();
+  }
+
+  function loadCart() {
+    const cartList = document.getElementById("cartList");
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cartList.innerHTML = "";
+    let total = 0;
+
+    if (cart.length === 0) {
+      cartList.innerHTML = "<h3>No items in cart</h3>";
+      return;
+    }
+
+    cart.forEach((item, index) => {
+      total += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <img src="${item.image}">
+        <h4>${item.name}</h4>
+        <p>${item.shop}</p>
+        <p>₹${item.price} × ${item.qty} = ₹${item.price * item.qty}</p>
+        <button onclick="removeItem(${index})">Remove</button>
+      `;
+      cartList.appendChild(div);
+    });
+
+    const totalDiv = document.createElement("div");
+    totalDiv.className = "cart-total";
+    totalDiv.innerHTML = `
+      <p><strong>Total:</strong> ₹${total}</p>
+      <button class="place-order" onclick="openCheckout()">Place Order</button>
+    `;
+    cartList.appendChild(totalDiv);
+  }
+
+  function removeItem(index) {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    loadCart();
+  }
+
+  function openCheckout() {
+    document.getElementById("cartPanel").classList.remove("active");
+    document.getElementById("shopList").style.display = "none";
+    document.getElementById("menuList").style.display = "none";
+    const checkout = document.getElementById("checkoutPage");
+    checkout.style.display = "flex";
+
+    const checkoutItems = document.getElementById("checkoutItems");
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    checkoutItems.innerHTML = "";
+    let total = 0;
+
+    cart.forEach((item) => {
+      total += item.price * item.qty;
+      const p = document.createElement("p");
+      p.innerText = `${item.name} (${item.qty}) - ₹${item.price * item.qty}`;
+      checkoutItems.appendChild(p);
+    });
+
+    const totalText = document.createElement("h4");
+    totalText.innerText = `Total: ₹${total}`;
+    checkoutItems.appendChild(totalText);
+  }
+
+  function proceedOrder() {
+    const address = document.getElementById("userAddress").value.trim();
+    const phone = document.getElementById("userPhone").value.trim();
+
+    if (!address || !phone) return alert("Please fill address and mobile number!");
+
+    alert("✅ Order confirmed! Redirecting...");
+    localStorage.removeItem("cart");
+    // redirect link placeholder:
+    window.location.href = "order-success.html";
+  }
+
+  loadShops();
 </script>
+
 </body>
 </html>
