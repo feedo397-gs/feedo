@@ -5,16 +5,28 @@ import twilio from "twilio";
 
 const router = express.Router();
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+let client = null;
+let useMockOTP = false;
+
+// Check if Twilio credentials exist
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+  try {
+    client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    console.log("✅ Twilio initialized");
+  } catch (err) {
+    console.warn("⚠️ Failed to initialize Twilio. Falling back to mock OTP mode.");
+    useMockOTP = true;
+  }
+} else {
+  console.warn("⚠️ Twilio credentials not found. Using mock OTP mode.");
+  useMockOTP = true;
+}
 
 // Request OTP
 router.post("/request-otp", async (req, res) => {
   try {
     const { phone } = req.body;
-    if (!phone) return res.status(400).json({ error: "Phone is required" });
+    if (!phone) return res.status(400).json({ error: "Phone number is required" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + process.env.OTP_EXPIRY_MINUTES * 60000);
@@ -27,14 +39,19 @@ router.post("/request-otp", async (req, res) => {
       await user.save();
     }
 
-    // Send WhatsApp message
-    await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM,
-      to: `whatsapp:+91${phone}`,
-      body: `Your Feedo OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES} minutes.`
-    });
+    // Send OTP (via Twilio or mock)
+    if (!useMockOTP && client) {
+      await client.messages.create({
+        from: process.env.TWILIO_WHATSAPP_FROM,
+        to: `whatsapp:+91${phone}`,
+        body: `Your Feedo OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES} minutes.`
+      });
+      console.log(`✅ WhatsApp OTP sent to +91${phone}`);
+    } else {
+      console.log(`📱 Mock OTP (no Twilio): ${otp} for +91${phone}`);
+    }
 
-    res.json({ success: true, message: "OTP sent via WhatsApp" });
+    res.json({ success: true, message: useMockOTP ? "Mock OTP generated" : "OTP sent via WhatsApp" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -46,8 +63,9 @@ router.post("/verify-otp", async (req, res) => {
     const { phone, otp } = req.body;
     const user = await User.findOne({ phone });
 
-    if (!user || user.otp !== otp || user.otpExpires < Date.now())
+    if (!user || user.otp !== otp || user.otpExpires < Date.now()) {
       return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
 
     const token = jwt.sign({ phone }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
